@@ -12,6 +12,8 @@ COPY apps/api ./apps/api
 WORKDIR /app/apps/api
 RUN npx prisma generate
 RUN npm run build
+# npm hoistea las deps a /app/node_modules; garantiza que el dir exista para el COPY del runner
+RUN mkdir -p node_modules
 
 # --- Runtime stage ---
 FROM node:22-alpine AS runner
