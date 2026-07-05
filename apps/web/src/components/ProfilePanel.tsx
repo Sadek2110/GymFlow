@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { api, ApiRequestError } from '../lib/api';
 import { tokenStore } from '../lib/tokens';
 import { toDisplayWeight, toKg, formatWeight, type Units } from '../lib/units';
+import GymCredentialsPanel from './GymCredentialsPanel';
 
 interface Me {
   id: string;
@@ -126,6 +127,8 @@ export default function ProfilePanel() {
         </form>
       </section>
 
+      <GymCredentialsPanel />
+
       <section className="rounded-2xl bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Evolución del peso
@@ -158,9 +161,19 @@ export default function ProfilePanel() {
         href="/reservations"
         className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md"
       >
-        <span className="font-medium text-slate-800">🏋️ Reservas del gimnasio</span>
-        <span className="text-brand-600">→</span>
+        <span className="font-medium text-slate-800">Reservas del gimnasio</span>
+        <span className="text-sm font-semibold text-brand-700">Abrir</span>
       </a>
+
+      {me?.role === 'ADMIN' && (
+        <a
+          href="/admin"
+          className="flex min-h-11 items-center justify-between rounded-2xl border border-brand-200 bg-brand-50 p-4 font-semibold text-brand-800"
+        >
+          Administración
+          <span className="text-sm">Abrir</span>
+        </a>
+      )}
 
       {error && (
         <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">

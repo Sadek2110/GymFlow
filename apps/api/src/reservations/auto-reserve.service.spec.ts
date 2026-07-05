@@ -81,8 +81,9 @@ describe('AutoReserveService', () => {
           { dayOfWeek: 1, isRestDay: false, exercises: [{ id: 'e1' }], title: 'Pecho' },
         ],
       });
+      prisma.gymCredential.count.mockResolvedValue(1);
       reservations.run.mockResolvedValue({ status: 'confirmed' });
-      await service.runForUser(USER, '09:00 - 10:00');
+      await service.runForUser(USER, ['09:00 - 10:00']);
       expect(reservations.run).toHaveBeenCalledWith(USER, {
         dryRun: false, time: '09:00 - 10:00',
       });
@@ -103,6 +104,54 @@ describe('AutoReserveService', () => {
         data: expect.objectContaining({ userId: USER, status: 'skipped' }),
       });
       expect(res).toEqual({ skipped: true, reason: 'rest-day' });
+    });
+
+    it('itera varias franjas en secuencia y un fallo no bloquea la siguiente', async () => {
+      prisma.routine.findFirst.mockResolvedValue({
+        id: 'r',
+        isActive: true,
+        days: [{
+          dayOfWeek: 1,
+          isRestDay: false,
+          exercises: [{ id: 'e1' }],
+          title: 'Pecho',
+        }],
+      });
+      prisma.gymCredential.count.mockResolvedValue(1);
+      reservations.run
+        .mockRejectedValueOnce(new Error('sin plaza'))
+        .mockResolvedValueOnce({ status: 'confirmed' });
+
+      const result = await service.runForUser(USER, [
+        '09:00 - 10:00',
+        '18:00 - 19:00',
+      ]);
+
+      expect(reservations.run).toHaveBeenCalledTimes(2);
+      expect(result).toEqual([
+        { time: '09:00 - 10:00', status: 'failed' },
+        { time: '18:00 - 19:00', status: 'confirmed' },
+      ]);
+    });
+
+    it('sin credenciales persiste skip y no intenta reservar', async () => {
+      prisma.routine.findFirst.mockResolvedValue({
+        id: 'r',
+        isActive: true,
+        days: [{
+          dayOfWeek: 1,
+          isRestDay: false,
+          exercises: [{ id: 'e1' }],
+          title: 'Pecho',
+        }],
+      });
+      prisma.gymCredential.count.mockResolvedValue(0);
+
+      await expect(service.runForUser(USER)).resolves.toEqual({
+        skipped: true,
+        reason: 'no-credentials',
+      });
+      expect(reservations.run).not.toHaveBeenCalled();
     });
   });
 });

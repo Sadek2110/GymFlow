@@ -20,7 +20,8 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.enableCors({
     origin: config.get<string>('corsOrigin'),
-    credentials: true,
+    // La app usa Authorization: Bearer, no cookies cross-origin.
+    credentials: false,
   });
 
   const port = config.get<number>('port') ?? 4000;

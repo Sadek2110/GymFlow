@@ -6,7 +6,7 @@ export interface Reservation {
   service: string;
   date: string;
   timeSlot: string;
-  status: 'pending' | 'confirmed' | 'failed' | 'dry_run' | 'skipped';
+  status: 'pending' | 'confirmed' | 'failed' | 'dry_run' | 'skipped' | 'cancelled';
   rawLog?: string | null;
   createdAt: string;
 }
@@ -19,7 +19,12 @@ export interface ReservaGymHealth {
 
 export interface AutoReserveState {
   enabled: boolean;
-  time: string | null;
+  times: string[];
+}
+
+export interface GymCredentialsState {
+  configured: boolean;
+  updatedAt: string | null;
 }
 
 export interface ShouldRunResponse {
@@ -35,6 +40,7 @@ export const RESERVATION_STATUS_LABEL: Record<Reservation['status'], string> = {
   failed: 'Fallida',
   dry_run: 'Prueba (dry run)',
   skipped: 'Omitida (descanso)',
+  cancelled: 'Cancelada',
 };
 
 export const RESERVATION_STATUS_BADGE: Record<Reservation['status'], string> = {
@@ -43,6 +49,7 @@ export const RESERVATION_STATUS_BADGE: Record<Reservation['status'], string> = {
   failed: 'bg-red-100 text-red-700',
   dry_run: 'bg-slate-100 text-slate-600',
   skipped: 'bg-blue-100 text-blue-700',
+  cancelled: 'bg-slate-200 text-slate-600 line-through',
 };
 
 export const fetchReservationHealth = () =>
@@ -58,6 +65,24 @@ export const fetchAutoReserve = () =>
 
 export const updateAutoReserve = (body: AutoReserveState) =>
   api.patch<AutoReserveState>('/reservations/auto-reserve', body);
+
+export const fetchGymCredentials = () =>
+  api.get<GymCredentialsState>('/reservations/credentials');
+
+export const saveGymCredentials = (body: { dni: string; password: string }) =>
+  api.put<{ configured: true }>('/reservations/credentials', body);
+
+export const testGymCredentials = () =>
+  api.post<{ ok: boolean; message: string }>('/reservations/credentials/test');
+
+export const deleteGymCredentials = () =>
+  api.del<{ configured: false }>('/reservations/credentials');
+
+export const cancelReservation = (id: string, dryRun = false) =>
+  api.post<Reservation | { ok: true; dryRun: true }>(
+    `/reservations/${encodeURIComponent(id)}/cancel`,
+    { dryRun },
+  );
 
 export const fetchShouldRunTomorrow = () =>
   api.get<ShouldRunResponse>('/reservations/should-run');

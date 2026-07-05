@@ -28,6 +28,7 @@ export function createPrismaMock() {
     bodyMeasurement: model(),
     refreshToken: model(),
     passwordResetToken: model(),
+    gymCredential: model(),
     exercise: model(),
     routine: model(),
     routineDay: model(),

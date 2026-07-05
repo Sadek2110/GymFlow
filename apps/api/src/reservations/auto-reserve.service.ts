@@ -6,17 +6,16 @@ import { TelegramService } from '../notifications/telegram.service';
 
 const FACILITY = 'C.D. Díaz Flor';
 const SERVICE = 'Sala Cardio-Fitness';
-
-// Decisión: por qué el cron a las 04:59:55 en vez de 05:00:00.
-// La ventana de reserva del ICD Ceuta abre exactamente a las 05:00. Si arrancamos justo
-// a esa hora perdemos ~2-3 s en cold start de Playwright. Adelantar 5 s nos deja listos
-// para hacer submit en cuanto abre.
 const CRON_EXPR = '55 59 4 * * *';
 const TZ = 'Europe/Madrid';
 
 export interface ShouldReserveResult {
   shouldReserve: boolean;
-  reason?: 'no-active-routine' | 'day-not-in-routine' | 'rest-day' | 'empty-day';
+  reason?:
+    | 'no-active-routine'
+    | 'day-not-in-routine'
+    | 'rest-day'
+    | 'empty-day';
   dayTitle?: string;
 }
 
@@ -30,40 +29,27 @@ export class AutoReserveService {
     private readonly telegram: TelegramService,
   ) {}
 
-  // ---------- CRON DIARIO ----------
   @Cron(CRON_EXPR, { timeZone: TZ })
   async runDaily() {
-    this.logger.log('Iniciando ciclo de auto-reserva');
-
     const users = await this.prisma.user.findMany({
       where: { autoReserveEnabled: true },
     });
-
-    if (users.length === 0) {
-      this.logger.log('No hay usuarios con auto-reserva activa');
-      return;
-    }
-
     for (const user of users) {
       try {
-        await this.runForUser(user.id, user.autoReserveTime ?? undefined);
-      } catch (err) {
-        // Nunca dejamos que un fallo en un usuario tumbe el resto.
+        await this.runForUser(user.id, user.autoReserveTimes);
+      } catch (error) {
         this.logger.error(
           `Auto-reserva fallida para ${user.id}: ${
-            err instanceof Error ? err.message : String(err)
+            error instanceof Error ? error.message : String(error)
           }`,
         );
       }
     }
-    this.logger.log(`Ciclo terminado: ${users.length} usuario(s) procesado(s)`);
   }
 
-  // ---------- LÓGICA POR USUARIO ----------
-  async runForUser(userId: string, time?: string) {
+  async runForUser(userId: string, times: string[] = []) {
     const tomorrow = this.addDays(this.now(), 1);
     const check = await this.shouldReserve(userId, tomorrow);
-
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { name: true },
@@ -71,46 +57,47 @@ export class AutoReserveService {
     const userName = user?.name ?? 'Usuario';
 
     if (!check.shouldReserve) {
-      this.logger.log(`Skip ${userId}: ${check.reason}`);
-      await this.persistSkip(userId, tomorrow, time, check.reason!);
+      await this.persistSkip(userId, tomorrow, times[0], check.reason!);
       await this.telegram.send(
         `💤 <b>${userName}</b>: mañana descansas, no se reserva.`,
       );
       return { skipped: true, reason: check.reason };
     }
 
-    this.logger.log(`Reservando para ${userId} (${check.dayTitle})`);
-    // Delegamos en el servicio existente: él persiste el Reservation con status
-    // dry_run/confirmed/failed y llama a ReservaGym con solo { dryRun, time }.
-    try {
-      const result = await this.reservations.run(userId, {
-        dryRun: false,
-        time,
-      });
-      const status = result.status;
-      if (status === 'confirmed') {
-        await this.telegram.send(
-          `✅ <b>${userName}</b>: reserva hecha para ${check.dayTitle}.`,
-        );
-      } else if (status === 'dry_run') {
-        await this.telegram.send(
-          `🧪 <b>${userName}</b>: prueba de reserva (dry run) completada para ${check.dayTitle}.`,
-        );
-      } else {
-        await this.telegram.send(
-          `❌ <b>${userName}</b>: fallo en reserva. Revisa logs.`,
-        );
-      }
-      return result;
-    } catch (err) {
+    const hasCredentials = await this.prisma.gymCredential.count({
+      where: { userId },
+    });
+    if (!hasCredentials) {
+      await this.persistSkip(userId, tomorrow, times[0], 'no-credentials');
       await this.telegram.send(
-        `❌ <b>${userName}</b>: fallo en reserva. Revisa logs.`,
+        `⚠️ <b>${userName}</b>: auto-reserva activada pero sin credenciales configuradas.`,
       );
-      throw err;
+      return { skipped: true, reason: 'no-credentials' };
     }
+
+    const slots: Array<string | undefined> =
+      times.length > 0 ? times : [undefined];
+    const results: Array<{ time: string | undefined; status: string }> = [];
+    for (const time of slots) {
+      try {
+        const reservation = await this.reservations.run(userId, {
+          dryRun: false,
+          time,
+        });
+        results.push({ time, status: reservation.status });
+      } catch {
+        results.push({ time, status: 'failed' });
+      }
+    }
+    const confirmed = results.filter(
+      (result) => result.status === 'confirmed',
+    ).length;
+    await this.telegram.send(
+      `📋 <b>${userName}</b>: ${confirmed}/${results.length} reservas para ${check.dayTitle}.`,
+    );
+    return results;
   }
 
-  // ---------- DECISIÓN ----------
   async shouldReserve(
     userId: string,
     date: Date,
@@ -119,35 +106,32 @@ export class AutoReserveService {
       where: { userId, isActive: true },
       include: { days: { include: { exercises: true } } },
     });
-
     if (!routine) return { shouldReserve: false, reason: 'no-active-routine' };
-
-    // JS: getDay() → 0=domingo … 6=sábado. Nuestra convención: 0=lunes … 6=domingo.
-    const dow = (date.getDay() + 6) % 7;
-    const day = routine.days.find((d) => d.dayOfWeek === dow);
-
+    const dayOfWeek = (date.getDay() + 6) % 7;
+    const day = routine.days.find((item) => item.dayOfWeek === dayOfWeek);
     if (!day) return { shouldReserve: false, reason: 'day-not-in-routine' };
     if (day.isRestDay) return { shouldReserve: false, reason: 'rest-day' };
-    if (day.exercises.length === 0)
+    if (day.exercises.length === 0) {
       return { shouldReserve: false, reason: 'empty-day' };
-
-    return { shouldReserve: true, dayTitle: day.title ?? 'Entrenamiento' };
+    }
+    return {
+      shouldReserve: true,
+      dayTitle: day.title ?? 'Entrenamiento',
+    };
   }
 
-  // ---------- HELPERS ----------
-  // Aislados para permitir tests deterministas (mockear now() en Jest).
   now(): Date {
     return new Date();
   }
 
-  private addDays(d: Date, n: number): Date {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    r.setHours(0, 0, 0, 0);
-    return r;
+  private addDays(date: Date, days: number): Date {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    result.setHours(0, 0, 0, 0);
+    return result;
   }
 
-  private async persistSkip(
+  private persistSkip(
     userId: string,
     date: Date,
     time: string | undefined,

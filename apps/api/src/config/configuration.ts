@@ -20,7 +20,7 @@ export interface AppConfiguration {
 
 export default (): AppConfiguration => ({
   port: parseInt(process.env.PORT ?? '4000', 10),
-  corsOrigin: process.env.CORS_ORIGIN ?? '*',
+  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
   jwt: {
     accessSecret: process.env.JWT_SECRET ?? '',
     refreshSecret: process.env.JWT_REFRESH_SECRET ?? '',

@@ -1,4 +1,9 @@
-import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
@@ -27,6 +32,10 @@ function build() {
 }
 
 describe('AuthService', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('register', () => {
     it('crea el usuario con contraseña hasheada (nunca en claro) y devuelve tokens + user sin hash', async () => {
       const { service, prisma } = build();
@@ -209,6 +218,23 @@ describe('AuthService', () => {
       await service.forgotPassword('ana@example.com');
 
       expect(prisma.passwordResetToken.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('nunca emite el token de recuperación a los logs', async () => {
+      const logger = jest
+        .spyOn(Logger.prototype, 'log')
+        .mockImplementation(() => undefined);
+      const { service, prisma } = build();
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'u1',
+        email: 'ana@example.com',
+      });
+
+      await service.forgotPassword('ana@example.com');
+
+      expect(logger).not.toHaveBeenCalled();
+      const stored = prisma.passwordResetToken.create.mock.calls[0][0].data;
+      expect(stored.tokenHash).toMatch(/^[a-f0-9]{64}$/);
     });
 
     it('no revela si el email existe: no lanza ni crea token para email desconocido', async () => {

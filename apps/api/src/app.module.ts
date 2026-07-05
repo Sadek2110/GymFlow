@@ -16,6 +16,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './health/health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     ProgressModule,
     ReservationsModule,
     NotificationsModule,
+    AdminModule,
   ],
   controllers: [HealthController],
   providers: [

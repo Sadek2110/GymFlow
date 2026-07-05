@@ -1,19 +1,23 @@
 import {
   BadGatewayException,
+  BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
+  PreconditionFailedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { CryptoService } from '../common/crypto/crypto.service';
 import { ReservaGymConfig } from '../config/configuration';
 import { RunReservationDto } from './dto/run-reservation.dto';
 
-// reservaGym reserva siempre en el mismo centro (C.D. Díaz Flor, Ceuta).
 const FACILITY = 'C.D. Díaz Flor';
 const SERVICE = 'Sala Cardio-Fitness';
 const DEFAULT_SLOT = 'Horario por defecto del servidor';
-const RUN_TIMEOUT_MS = 200_000; // reservaGym mata el proceso a los 180 s (guía §5.7)
+const RUN_TIMEOUT_MS = 200_000;
 const HEALTH_TIMEOUT_MS = 10_000;
+const LOGIN_TIMEOUT_MS = 60_000;
 const MAX_LOG = 5_000;
 
 @Injectable()
@@ -22,59 +26,181 @@ export class ReservationsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly crypto: CryptoService,
     configService: ConfigService,
   ) {
-    this.config = configService.get<ReservaGymConfig>('reservagym') ?? { enabled: false };
+    this.config = configService.get<ReservaGymConfig>('reservagym') ?? {
+      enabled: false,
+    };
   }
 
   async health() {
     this.assertEnabled();
     try {
-      const res = await this.doFetch(`${this.config.url}/health`, { method: 'GET' }, HEALTH_TIMEOUT_MS);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      return await res.json();
+      const response = await this.doFetch(
+        `${this.config.url}/health`,
+        { method: 'GET' },
+        HEALTH_TIMEOUT_MS,
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
     } catch {
-      // La app nunca cae porque el microservicio falle (guía §5.7).
-      throw new BadGatewayException('El servicio de reservas no está disponible ahora mismo');
+      throw new BadGatewayException(
+        'El servicio de reservas no está disponible ahora mismo',
+      );
     }
   }
 
   async run(userId: string, dto: RunReservationDto) {
     this.assertEnabled();
-    const dryRun = dto.dryRun ?? true; // por seguridad, no confirma salvo petición explícita
+    const credentials = await this.getCredentials(userId);
+    const timeSlot = dto.time ?? DEFAULT_SLOT;
+    const duplicate = await this.prisma.reservation.findFirst({
+      where: {
+        userId,
+        date: this.targetDate(),
+        timeSlot,
+        status: { in: ['pending', 'confirmed'] },
+      },
+    });
+    if (duplicate) {
+      throw new ConflictException(
+        'Ya tienes una reserva activa para esa franja',
+      );
+    }
 
-    let res: Response;
+    const dryRun = dto.dryRun ?? true;
+    let response: Response;
     let result: any;
     try {
-      res = await this.doFetch(
+      response = await this.doFetch(
         `${this.config.url}/reservar`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.config.apiKey}`,
-          },
-          // Solo dryRun y time: las credenciales del gimnasio viven en el .env de reservaGym.
-          body: JSON.stringify({ dryRun, ...(dto.time ? { time: dto.time } : {}) }),
+          headers: this.serviceHeaders(),
+          body: JSON.stringify({
+            dryRun,
+            ...credentials,
+            ...(dto.time ? { time: dto.time } : {}),
+          }),
         },
         RUN_TIMEOUT_MS,
       );
-      result = await res.json().catch(() => null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      await this.persist(userId, dto, 'failed', `Sin respuesta de reservaGym: ${message}`);
-      throw new BadGatewayException('El servicio de reservas no respondió a tiempo');
+      result = await response.json().catch(() => null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await this.persist(
+        userId,
+        dto,
+        'failed',
+        `Sin respuesta de ReservaGym: ${message}`,
+      );
+      throw new BadGatewayException(
+        'El servicio de reservas no respondió a tiempo',
+      );
     }
-
-    if (!res.ok || !result?.ok) {
-      await this.persist(userId, dto, 'failed', this.buildLog(result) || `HTTP ${res.status}`);
-      throw new BadGatewayException(result?.error ?? 'La reserva no se pudo completar');
+    const rawLog = this.buildLog(result, Object.values(credentials));
+    if (!response.ok || !result?.ok) {
+      await this.persist(
+        userId,
+        dto,
+        'failed',
+        rawLog || `HTTP ${response.status}`,
+      );
+      throw new BadGatewayException(
+        result?.error ?? 'La reserva no se pudo completar',
+      );
     }
+    return this.persist(
+      userId,
+      dto,
+      result.dryRun ? 'dry_run' : 'confirmed',
+      rawLog,
+    );
+  }
 
-    const status = result.dryRun ? 'dry_run' : 'confirmed';
-    return this.persist(userId, dto, status, this.buildLog(result));
+  async testLogin(userId: string) {
+    this.assertEnabled();
+    const credentials = await this.getCredentials(userId);
+    try {
+      const response = await this.doFetch(
+        `${this.config.url}/reservar`,
+        {
+          method: 'POST',
+          headers: this.serviceHeaders(),
+          body: JSON.stringify({
+            dryRun: true,
+            loginOnly: true,
+            ...credentials,
+          }),
+        },
+        LOGIN_TIMEOUT_MS,
+      );
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) {
+        return { ok: false, message: 'El portal rechazó las credenciales' };
+      }
+      return { ok: true, message: 'Login correcto en el portal' };
+    } catch {
+      throw new BadGatewayException('El servicio de reservas no respondió');
+    }
+  }
+
+  async cancel(userId: string, reservationId: string, dryRun: boolean) {
+    this.assertEnabled();
+    const reservation = await this.prisma.reservation.findFirst({
+      where: { id: reservationId, userId },
+    });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada');
+    if (reservation.status !== 'confirmed') {
+      throw new BadRequestException(
+        'Solo se pueden cancelar reservas confirmadas',
+      );
+    }
+    const credentials = await this.getCredentials(userId);
+    let response: Response;
+    let result: any;
+    try {
+      response = await this.doFetch(
+        `${this.config.url}/cancelar`,
+        {
+          method: 'POST',
+          headers: this.serviceHeaders(),
+          body: JSON.stringify({
+            ...credentials,
+            date: this.toPortalDate(reservation.date),
+            time: reservation.timeSlot,
+            dryRun,
+          }),
+        },
+        RUN_TIMEOUT_MS,
+      );
+      result = await response.json().catch(() => null);
+    } catch {
+      throw new BadGatewayException(
+        'El servicio de reservas no respondió a tiempo',
+      );
+    }
+    if (!response.ok || !result?.ok) {
+      throw new BadGatewayException(
+        result?.error ?? 'No se pudo anular la reserva',
+      );
+    }
+    if (dryRun) return { ok: true, dryRun: true };
+    return this.prisma.reservation.update({
+      where: { id: reservation.id },
+      data: {
+        status: 'cancelled',
+        rawLog: [
+          reservation.rawLog,
+          '--- CANCELACIÓN ---',
+          this.buildLog(result, Object.values(credentials)),
+        ]
+          .filter(Boolean)
+          .join('\n')
+          .slice(0, MAX_LOG),
+      },
+    });
   }
 
   async list(userId: string) {
@@ -85,42 +211,86 @@ export class ReservationsService {
     });
   }
 
-  // --- Helpers ---
+  private async getCredentials(userId: string) {
+    const credential = await this.prisma.gymCredential.findUnique({
+      where: { userId },
+    });
+    if (!credential) {
+      throw new PreconditionFailedException(
+        'Configura tus credenciales del gimnasio en Ajustes antes de reservar',
+      );
+    }
+    return {
+      dni: this.crypto.decrypt(credential.dniEnc),
+      password: this.crypto.decrypt(credential.passwordEnc),
+    };
+  }
 
-  private assertEnabled(): void {
+  private assertEnabled() {
     if (!this.config.enabled) {
       throw new NotFoundException('El módulo de reservas no está activado');
     }
   }
 
-  // Aislado para tests deterministas; reservaGym reserva para el día siguiente.
   now(): Date {
     return new Date();
   }
 
   private targetDate(): Date {
-    const d = this.now();
-    d.setDate(d.getDate() + 1);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    const date = this.now();
+    date.setDate(date.getDate() + 1);
+    date.setHours(0, 0, 0, 0);
+    return date;
   }
 
-  private async doFetch(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  private toPortalDate(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}/${month}/${date.getFullYear()}`;
+  }
+
+  private serviceHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.config.apiKey}`,
+    };
+  }
+
+  private async doFetch(
+    url: string,
+    init: RequestInit,
+    timeoutMs: number,
+  ): Promise<Response> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      return await globalThis.fetch(url, { ...init, signal: controller.signal });
+      return await globalThis.fetch(url, {
+        ...init,
+        signal: controller.signal,
+      });
     } finally {
       clearTimeout(timer);
     }
   }
 
-  private buildLog(result: any): string {
-    const parts = [result?.stdout, result?.stderr, result?.message, result?.error].filter(Boolean);
-    return parts.join('\n').slice(0, MAX_LOG);
+  private buildLog(result: any, secrets: string[] = []): string {
+    let log = [result?.stdout, result?.stderr, result?.message, result?.error]
+      .filter(Boolean)
+      .join('\n')
+      .slice(0, MAX_LOG)
+      .replace(/("?password"?\s*[:=]\s*)"[^"]*"/gi, '$1"***"');
+    for (const secret of secrets) {
+      if (secret) log = log.split(secret).join('***');
+    }
+    return log;
   }
 
-  private persist(userId: string, dto: RunReservationDto, status: string, rawLog: string) {
+  private persist(
+    userId: string,
+    dto: RunReservationDto,
+    status: string,
+    rawLog: string,
+  ) {
     return this.prisma.reservation.create({
       data: {
         userId,

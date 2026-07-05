@@ -13,15 +13,31 @@ const { title = 'Admin — GymFlow AI' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
     <title>{title}</title>
     <script is:inline>
-      if (!localStorage.getItem('gymflow.accessToken')) {
+      const token = localStorage.getItem('gymflow.accessToken');
+      if (!token) {
         window.location.replace('/login');
+      } else {
+        try {
+          const payload = JSON.parse(
+            atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')),
+          );
+          if (payload.role !== 'ADMIN') window.location.replace('/dashboard');
+        } catch {
+          localStorage.removeItem('gymflow.accessToken');
+          localStorage.removeItem('gymflow.refreshToken');
+          window.location.replace('/login');
+        }
       }
     </script>
   </head>
   <body class="min-h-dvh bg-slate-100">
-    <main class="mx-auto max-w-5xl px-4 py-8">
+    <a href="#admin-content" class="sr-only focus:not-sr-only focus:absolute focus:m-2 focus:rounded-lg focus:bg-white focus:p-3">
+      Saltar al contenido
+    </a>
+    <main id="admin-content" class="mx-auto max-w-5xl px-4 py-8">
       <slot />
     </main>
   </body>

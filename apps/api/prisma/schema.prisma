@@ -42,8 +42,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  autoReserveEnabled Boolean @default(false)
-  autoReserveTime    String? // p.ej. "09:00 - 10:00"; null = usa el TARGET_TIME de ReservaGym
+  autoReserveEnabled Boolean  @default(false)
+  autoReserveTimes   String[] @default([])
 
   profile             UserProfile?
   measurements        BodyMeasurement[]
@@ -51,6 +51,18 @@ model User {
   sessions            WorkoutSession[]
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  gymCredential      GymCredential?
+  reservations       Reservation[]
+}
+
+model GymCredential {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  dniEnc      String
+  passwordEnc String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserProfile {
@@ -204,7 +216,10 @@ model Reservation {
   service   String
   date      DateTime
   timeSlot  String
-  status    String // pending | confirmed | failed | dry_run | skipped
+  status    String // pending | confirmed | failed | dry_run | skipped | cancelled
   rawLog    String?
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }

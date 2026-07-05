@@ -27,5 +27,14 @@ export function validateEnv(
     }
   }
 
+  if (config.RESERVAGYM_ENABLED === 'true') {
+    const encryptionKey = String(config.CREDENTIALS_ENCRYPTION_KEY ?? '');
+    if (!/^[0-9a-f]{64}$/i.test(encryptionKey)) {
+      throw new Error(
+        'CREDENTIALS_ENCRYPTION_KEY debe tener 64 caracteres hexadecimales',
+      );
+    }
+  }
+
   return config;
 }

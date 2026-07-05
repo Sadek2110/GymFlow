@@ -2,7 +2,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -35,7 +34,6 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hora
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
   private readonly jwtCfg: JwtConfig;
 
   constructor(
@@ -152,8 +150,6 @@ export class AuthService {
       },
     });
 
-    // MVP: el email real llega en MVP 2. Por ahora se loguea en servidor.
-    this.logger.log(`[reset-password] token para ${normalized}: ${rawToken}`);
     return genericMessage;
   }
 

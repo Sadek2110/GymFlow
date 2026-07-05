@@ -1,0 +1,11 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import AdminUserDetail from '../../../components/AdminUserDetail.tsx';
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin');
+---
+
+<AdminLayout title="Usuario — Administración GymFlow">
+  <AdminUserDetail id={id} client:load />
+</AdminLayout>
