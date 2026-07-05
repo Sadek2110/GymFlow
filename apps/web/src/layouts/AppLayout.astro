@@ -15,7 +15,10 @@ const { title = 'GymFlow AI', active } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#2f7fff" />
+    <meta name="theme-color" content="#050505" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <title>{title}</title>
     <!-- Guard cliente: sin sesión, fuera. (Los tokens viven en localStorage; el SSR no los ve.) -->
     <script is:inline>
@@ -24,7 +27,7 @@ const { title = 'GymFlow AI', active } = Astro.props;
       }
     </script>
   </head>
-  <body class="min-h-dvh pb-24">
+  <body class="min-h-dvh pb-24 bg-dark-bg text-slate-100 antialiased">
     <main class="mx-auto max-w-md px-5 py-6">
       <slot />
     </main>

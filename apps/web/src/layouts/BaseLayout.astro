@@ -15,10 +15,13 @@ const { title = 'GymFlow AI', description = 'Tu gimnasio, ordenado.' } = Astro.p
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#2f7fff" />
+    <meta name="theme-color" content="#050505" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <title>{title}</title>
   </head>
-  <body class="min-h-dvh">
+  <body class="min-h-dvh bg-dark-bg text-slate-100 antialiased">
     <slot />
   </body>
 </html>

@@ -86,24 +86,30 @@ export default function ProfilePanel() {
     <div className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{me?.name}</h1>
-          <p className="text-sm text-slate-500">{me?.email}</p>
+          <h1 className="font-headline text-3xl font-bold text-white tracking-tight">{me?.name}</h1>
+          <p className="text-sm text-slate-400 font-semibold mt-0.5">{me?.email}</p>
         </div>
         <button
           onClick={logout}
-          className="touch-target rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+          className="touch-target rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
         >
           Salir
         </button>
       </header>
 
-      <section className="rounded-2xl bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      {error && (
+        <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400 font-semibold">
+          {error}
+        </p>
+      )}
+
+      <section className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Añadir peso corporal
         </h2>
-        <form onSubmit={addWeight} className="mt-3 flex items-end gap-3">
+        <form onSubmit={addWeight} className="mt-4 flex items-end gap-3">
           <div className="flex-1">
-            <label htmlFor="newWeight" className="mb-1 block text-sm text-slate-600">
+            <label htmlFor="newWeight" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-400">
               Peso actual ({units})
             </label>
             <input
@@ -114,13 +120,13 @@ export default function ProfilePanel() {
               value={newWeight}
               onChange={(e) => setNewWeight(e.target.value)}
               placeholder={me?.lastWeightKg ? String(toDisplayWeight(me.lastWeightKg, units)) : '—'}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-lg outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
           <button
             type="submit"
             disabled={saving}
-            className="touch-target rounded-xl bg-brand-500 px-5 py-3 font-semibold text-white hover:bg-brand-600 disabled:opacity-60"
+            className="touch-target rounded-xl bg-brand-500 px-5 py-3 font-bold text-white hover:bg-brand-600 disabled:opacity-60 cursor-pointer transition-all active:scale-95 shadow-[0_0_12px_rgba(47,127,255,0.2)] border border-white/10"
           >
             {saving ? '…' : 'Guardar'}
           </button>
@@ -129,22 +135,22 @@ export default function ProfilePanel() {
 
       <GymCredentialsPanel />
 
-      <section className="rounded-2xl bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <section className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Evolución del peso
         </h2>
         {measurements.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">
+          <p className="mt-3 text-sm text-slate-400 font-semibold">
             Aún no has registrado tu peso. Añade el primero arriba.
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-100">
+          <ul className="mt-4 divide-y divide-white/5">
             {[...measurements].reverse().map((m) => (
-              <li key={m.id} className="flex items-center justify-between py-2.5">
-                <span className="font-medium text-slate-800">
+              <li key={m.id} className="flex items-center justify-between py-3">
+                <span className="font-bold text-white">
                   {formatWeight(Number(m.weightKg), units)}
                 </span>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-slate-500 font-semibold">
                   {new Date(m.date).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: 'short',
@@ -159,26 +165,20 @@ export default function ProfilePanel() {
 
       <a
         href="/reservations"
-        className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md"
+        className="glass-card flex items-center justify-between rounded-2xl p-4 transition duration-200 hover:scale-[1.01]"
       >
-        <span className="font-medium text-slate-800">Reservas del gimnasio</span>
-        <span className="text-sm font-semibold text-brand-700">Abrir</span>
+        <span className="font-bold text-white">Reservas del gimnasio</span>
+        <span className="text-sm font-bold text-brand-400">Abrir</span>
       </a>
 
       {me?.role === 'ADMIN' && (
         <a
           href="/admin"
-          className="flex min-h-11 items-center justify-between rounded-2xl border border-brand-200 bg-brand-50 p-4 font-semibold text-brand-800"
+          className="flex min-h-11 items-center justify-between rounded-2xl border border-brand-500/25 bg-brand-500/10 p-4 font-bold text-brand-400 hover:bg-brand-500/15 duration-200 transition"
         >
           Administración
           <span className="text-sm">Abrir</span>
         </a>
-      )}
-
-      {error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </p>
       )}
     </div>
   );

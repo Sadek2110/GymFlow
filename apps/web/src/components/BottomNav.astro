@@ -12,7 +12,7 @@ const items = [
 ---
 
 <nav
-  class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur"
+  class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-black/60 backdrop-blur-2xl shadow-[0_-10px_25px_rgba(0,0,0,0.5)]"
   aria-label="Navegación principal"
 >
   <ul class="mx-auto flex max-w-md items-center justify-around px-2 py-1.5">
@@ -21,7 +21,7 @@ const items = [
         {item.center ? (
           <a
             href={item.href}
-            class="grid h-14 w-14 -translate-y-3 place-items-center rounded-full bg-brand-500 text-xs font-bold text-white shadow-lg shadow-brand-500/30 transition-colors hover:bg-brand-600"
+            class="grid h-14 w-14 -translate-y-3 place-items-center rounded-full bg-brand-500 text-xs font-bold text-white shadow-[0_0_20px_rgba(47,127,255,0.45)] border border-white/20 transition-all hover:bg-brand-600 hover:scale-105 active:scale-95"
             aria-current={active === item.key ? 'page' : undefined}
           >
             {item.label}
@@ -30,8 +30,10 @@ const items = [
           <a
             href={item.href}
             class:list={[
-              'touch-target grid place-items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-              active === item.key ? 'text-brand-600' : 'text-slate-500 hover:text-slate-800',
+              'touch-target grid place-items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200',
+              active === item.key 
+                ? 'text-brand-500 bg-brand-500/10 shadow-[inset_0_0_12px_rgba(47,127,255,0.15)]' 
+                : 'text-slate-400 hover:text-white',
             ]}
             aria-current={active === item.key ? 'page' : undefined}
           >

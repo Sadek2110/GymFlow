@@ -168,20 +168,19 @@ export default function TrainSession() {
     setModalOpen(false);
   }
 
-  if (loading) return <p className="py-10 text-center text-slate-500">Cargando…</p>;
-
   if (finished) {
     const sets = finished.logs.length;
     return (
-      <div className="py-10 text-center">
+      <div className="py-12 text-center glass-card rounded-2xl p-6 relative overflow-hidden">
+        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand-500/10 blur-3xl"></div>
         <p className="text-5xl">🎉</p>
-        <h1 className="mt-3 text-2xl font-bold text-slate-900">¡Entrenamiento completado!</h1>
-        <p className="mt-1 text-slate-500">
+        <h1 className="font-headline mt-3 text-2xl font-bold text-white">¡Entrenamiento completado!</h1>
+        <p className="mt-1 text-sm font-semibold text-slate-400">
           {sets} {sets === 1 ? 'serie registrada' : 'series registradas'}.
         </p>
         <a
           href="/dashboard"
-          className="mt-6 inline-block rounded-xl bg-brand-500 px-5 py-3 text-base font-semibold text-white hover:bg-brand-600"
+          className="mt-6 inline-block rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-3 text-sm font-bold text-white hover:shadow-[0_0_20px_rgba(47,127,255,0.4)] transition-all duration-300 border border-white/10 active:scale-95 cursor-pointer"
         >
           Volver al inicio
         </a>
@@ -193,23 +192,23 @@ export default function TrainSession() {
     return (
       <div className="flex flex-col gap-5">
         <header>
-          <h1 className="text-2xl font-bold text-slate-900">Entrenar</h1>
-          <p className="text-sm text-slate-500">No tienes ningún entrenamiento en curso.</p>
+          <h1 className="font-headline text-3xl font-bold text-white tracking-tight">Entrenar</h1>
+          <p className="text-sm text-slate-400 mt-1">No tienes ningún entrenamiento en curso.</p>
         </header>
         {error && (
-          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
             {error}
           </p>
         )}
         <button
           onClick={startFree}
           disabled={busy}
-          className="touch-target rounded-2xl bg-brand-500 px-4 py-4 text-lg font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-40"
+          className="touch-target rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-4 text-base font-bold text-white shadow-[0_0_20px_rgba(47,127,255,0.3)] hover:shadow-[0_0_25px_rgba(47,127,255,0.5)] active:scale-95 transition-all duration-300 border border-white/10 cursor-pointer"
         >
           Empezar entrenamiento libre
         </button>
-        <p className="text-center text-sm text-slate-400">
-          Para entrenar tu rutina de hoy, entra desde <a href="/routines" className="text-brand-600">Rutinas</a>.
+        <p className="text-center text-sm text-slate-500">
+          Para entrenar tu rutina de hoy, entra desde <a href="/routines" className="text-brand-500 font-semibold hover:underline">Rutinas</a>.
         </p>
       </div>
     );
@@ -231,25 +230,26 @@ export default function TrainSession() {
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="rounded-2xl bg-white p-4 shadow-sm">
-        <h1 className="text-xl font-bold text-slate-900">
+      <header className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute -right-10 -top-10 w-24 h-24 bg-brand-500/10 rounded-full blur-3xl"></div>
+        <h1 className="font-headline text-xl font-bold text-white">
           {session.plan?.title || 'Entrenamiento libre'}
         </h1>
-        <p className="mt-0.5 text-sm text-slate-500">
+        <p className="mt-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
           {totalSets} {totalSets === 1 ? 'serie' : 'series'} · en curso
         </p>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-4 flex gap-2.5">
           <button
             onClick={handleFinish}
             disabled={busy}
-            className="touch-target flex-1 rounded-xl bg-green-600 px-4 py-3 text-base font-semibold text-white hover:bg-green-700 disabled:opacity-40"
+            className="touch-target flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.25)] border border-white/10 hover:bg-emerald-700 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             ✓ Finalizar
           </button>
           <button
             onClick={handleAbandon}
             disabled={busy}
-            className="touch-target rounded-xl border border-slate-300 px-4 py-3 text-base font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+            className="touch-target rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-white/10 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             Abandonar
           </button>
@@ -261,7 +261,7 @@ export default function TrainSession() {
       )}
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
           {error}
         </p>
       )}
@@ -303,7 +303,7 @@ export default function TrainSession() {
       <button
         onClick={() => setModalOpen(true)}
         disabled={busy}
-        className="touch-target rounded-xl border border-dashed border-brand-400 px-4 py-3 text-base font-semibold text-brand-600 hover:bg-brand-50 disabled:opacity-40"
+        className="touch-target rounded-xl border border-dashed border-brand-500/40 bg-brand-500/5 px-4 py-3.5 text-base font-bold text-brand-400 hover:bg-brand-500/10 active:scale-95 transition-all duration-200 cursor-pointer"
       >
         + Añadir ejercicio
       </button>
@@ -375,21 +375,21 @@ function ExerciseCard({
   }
 
   return (
-    <section className="rounded-2xl bg-white p-4 shadow-sm">
+    <section className="glass-card rounded-2xl p-5 border-l-4 border-l-brand-500 relative overflow-hidden">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="font-semibold text-slate-900">{name}</h2>
-        <span className="shrink-0 text-sm text-slate-400">Objetivo: {target}</span>
+        <h2 className="font-headline font-bold text-white text-base">{name}</h2>
+        <span className="shrink-0 text-xs font-semibold text-slate-500">Objetivo: {target}</span>
       </div>
 
       {logs.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-1.5">
+        <ul className="mt-3.5 flex flex-col gap-1.5">
           {logs.map((l) => (
             <li
               key={l.id}
-              className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+              className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-slate-200"
             >
-              <span className="text-slate-700">
-                <span className="font-medium">Serie {l.setNumber}</span> ·{' '}
+              <span>
+                <span className="font-bold text-slate-400">Serie {l.setNumber}</span> ·{' '}
                 {l.weightKg != null ? `${l.weightKg} kg × ` : ''}
                 {l.reps} reps
               </span>
@@ -397,7 +397,7 @@ function ExerciseCard({
                 onClick={() => onDeleteSet(l.id)}
                 disabled={busy}
                 aria-label={`Borrar serie ${l.setNumber}`}
-                className="touch-target px-2 text-slate-400 hover:text-red-600 disabled:opacity-40"
+                className="touch-target px-2 text-slate-500 hover:text-red-400 active:scale-95 disabled:opacity-40"
               >
                 ×
               </button>
@@ -406,7 +406,7 @@ function ExerciseCard({
         </ul>
       )}
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-3.5">
         <Stepper label="Peso (kg)" value={weight} onChange={setWeight} step={2.5} min={0} />
         <Stepper label="Reps" value={reps} onChange={setReps} step={1} min={0} />
       </div>
@@ -414,12 +414,12 @@ function ExerciseCard({
       <button
         onClick={done}
         disabled={busy}
-        className="touch-target mt-3 w-full rounded-xl bg-brand-500 px-4 py-3 text-base font-semibold text-white hover:bg-brand-600 disabled:opacity-40"
+        className="touch-target mt-4 w-full rounded-xl bg-brand-500 px-4 py-3 text-sm font-bold text-white hover:bg-brand-600 active:scale-95 transition-all shadow-[0_0_15px_rgba(47,127,255,0.3)] border border-white/10 cursor-pointer"
       >
         ✓ Serie {setNumber} hecha
       </button>
 
-      {hint && <p className="mt-2 text-center text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="mt-2.5 text-center text-xs font-semibold text-slate-500">{hint}</p>}
     </section>
   );
 }
@@ -444,13 +444,13 @@ function Stepper({
   }
   return (
     <div>
-      <span className="mb-1 block text-sm font-medium text-slate-600">{label}</span>
-      <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-300">
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-400">{label}</span>
+      <div className="flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-white/5">
         <button
           type="button"
           onClick={() => bump(-step)}
           aria-label={`Bajar ${label}`}
-          className="touch-target px-3 text-xl font-bold text-slate-500 hover:bg-slate-100"
+          className="touch-target px-3.5 text-xl font-bold text-slate-300 hover:bg-white/10 active:scale-95 transition-all"
         >
           −
         </button>
@@ -459,13 +459,13 @@ function Stepper({
           inputMode="decimal"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full min-w-0 border-x border-slate-200 px-2 py-2.5 text-center text-base outline-none focus:bg-brand-50"
+          className="w-full min-w-0 border-x border-white/10 bg-transparent px-2 py-2.5 text-center text-base text-white outline-none focus:bg-brand-500/10"
         />
         <button
           type="button"
           onClick={() => bump(step)}
           aria-label={`Subir ${label}`}
-          className="touch-target px-3 text-xl font-bold text-slate-500 hover:bg-slate-100"
+          className="touch-target px-3.5 text-xl font-bold text-slate-300 hover:bg-white/10 active:scale-95 transition-all"
         >
           +
         </button>

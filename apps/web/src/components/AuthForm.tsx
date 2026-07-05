@@ -25,8 +25,8 @@ const GOALS = [
 ];
 
 const fieldClass =
-  'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100';
-const labelClass = 'mb-1 block text-sm font-medium text-slate-700';
+  'w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20';
+const labelClass = 'mb-1 block text-sm font-medium text-slate-400';
 
 export default function AuthForm({ mode }: { mode: Mode }) {
   const isRegister = mode === 'register';
@@ -124,8 +124,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       </div>
 
       {isRegister && (
-        <fieldset className="flex flex-col gap-4 rounded-2xl bg-slate-100 p-4">
-          <legend className="px-1 text-sm font-semibold text-slate-600">
+        <fieldset className="flex flex-col gap-4 rounded-2xl bg-white/5 border border-white/5 p-4">
+          <legend className="px-1 text-sm font-semibold text-slate-400">
             Cuéntanos sobre ti
           </legend>
           <div className="grid grid-cols-2 gap-3">
@@ -196,7 +196,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
           {error}
         </p>
       )}
@@ -204,16 +204,16 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       <button
         type="submit"
         disabled={loading}
-        className="touch-target mt-2 grid place-items-center rounded-xl bg-brand-500 px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 active:bg-brand-700 disabled:opacity-60"
+        className="touch-target mt-4 grid place-items-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-3.5 text-base font-bold text-white shadow-[0_0_20px_rgba(47,127,255,0.3)] transition-all hover:shadow-[0_0_25px_rgba(47,127,255,0.5)] active:scale-95 disabled:opacity-60 cursor-pointer"
       >
         {loading ? 'Un momento…' : isRegister ? 'Crear cuenta' : 'Entrar'}
       </button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-slate-400">
         {isRegister ? (
-          <>¿Ya tienes cuenta? <a href="/login" className="font-semibold text-brand-600">Inicia sesión</a></>
+          <>¿Ya tienes cuenta? <a href="/login" className="font-semibold text-brand-500 hover:underline">Inicia sesión</a></>
         ) : (
-          <>¿Nuevo por aquí? <a href="/register" className="font-semibold text-brand-600">Crea tu cuenta</a></>
+          <>¿Nuevo por aquí? <a href="/register" className="font-semibold text-brand-500 hover:underline">Crea tu cuenta</a></>
         )}
       </p>
     </form>

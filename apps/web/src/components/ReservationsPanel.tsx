@@ -128,23 +128,23 @@ export default function ReservationsPanel() {
   return (
     <div className="flex flex-col gap-5">
       <header>
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="font-headline text-3xl font-bold text-white tracking-tight">
           Reservas del gimnasio
         </h1>
-        <p className="mt-1 text-sm/6 text-slate-600">
+        <p className="mt-1.5 text-sm/6 text-slate-400 font-medium">
           Reserva una o varias franjas para mañana en el C.D. Díaz Flor.
         </p>
       </header>
 
-      <section className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-        <span className="text-sm font-medium text-slate-700">
+      <section className="glass-card flex items-center justify-between rounded-2xl p-4 shadow-sm">
+        <span className="text-sm font-semibold text-slate-300">
           Estado del servicio
         </span>
         <span
-          className={`rounded-full px-3 py-1 text-sm font-semibold ${
+          className={`rounded-full px-3.5 py-1 text-xs font-bold border ${
             online
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+              : 'bg-red-500/10 border-red-500/20 text-red-400'
           }`}
         >
           {online ? 'Disponible' : 'No responde'}
@@ -152,30 +152,30 @@ export default function ReservationsPanel() {
       </section>
 
       {!configured && (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm/6 text-amber-900">
+        <section className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+          <p className="text-sm/6 text-amber-400 font-medium">
             Configura tus credenciales del portal antes de reservar.
           </p>
           <a
             href="/profile"
-            className="mt-2 inline-flex min-h-11 items-center font-semibold text-amber-900 underline decoration-2 underline-offset-4"
+            className="mt-2.5 inline-flex min-h-11 items-center font-bold text-amber-300 hover:text-amber-200 transition-colors underline decoration-2 underline-offset-4"
           >
             Configurar credenciales
           </a>
         </section>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+      <section className="glass-card rounded-2xl p-5 relative overflow-hidden">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="font-semibold text-slate-900">
+            <h2 className="font-headline font-bold text-lg text-white">
               Reservas automáticas
             </h2>
-            <p className="mt-1 text-sm/6 text-slate-600">
+            <p className="mt-1 text-xs font-medium text-slate-400">
               Máximo tres franjas, ejecutadas de forma secuencial.
             </p>
           </div>
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-slate-300">
             <input
               type="checkbox"
               checked={auto.enabled}
@@ -183,7 +183,7 @@ export default function ReservationsPanel() {
               onChange={(event) =>
                 void saveAuto({ ...auto, enabled: event.target.checked })
               }
-              className="size-5 rounded border-slate-300 text-brand-500 focus:ring-brand-300"
+              className="size-5 rounded border-white/10 bg-white/5 text-brand-500 focus:ring-brand-500/20"
             />
             Activar
           </label>
@@ -200,14 +200,14 @@ export default function ReservationsPanel() {
                   times: auto.times.filter((item) => item !== time),
                 })
               }
-              className="min-h-11 rounded-full bg-brand-50 px-4 text-sm font-medium text-brand-800 hover:bg-brand-100"
+              className="min-h-11 rounded-full bg-brand-500/10 border border-brand-500/20 px-4 text-sm font-semibold text-brand-400 hover:bg-brand-500/25 active:scale-95 transition-all"
               aria-label={`Eliminar franja ${time}`}
             >
               {time} ×
             </button>
           ))}
         </div>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
           <label className="sr-only" htmlFor="auto-time">
             Nueva franja automática
           </label>
@@ -215,46 +215,46 @@ export default function ReservationsPanel() {
             id="auto-time"
             value={candidateTime}
             onChange={(event) => setCandidateTime(event.target.value)}
-            className="min-h-11 flex-1 rounded-xl border border-slate-300 px-3"
+            className="min-h-11 flex-1 rounded-xl border border-white/10 bg-white/5 text-white px-3 focus:border-brand-500 focus:ring-brand-500/20 outline-none"
           >
             {TIME_SLOTS.map((time) => (
-              <option key={time}>{time}</option>
+              <option key={time} className="bg-slate-900 text-white">{time}</option>
             ))}
           </select>
           <button
             type="button"
             disabled={busy || auto.times.length >= 3}
             onClick={addTime}
-            className="touch-target rounded-xl border border-brand-300 px-4 font-semibold text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+            className="touch-target rounded-xl border border-brand-500/30 px-5 font-bold text-brand-400 hover:bg-brand-500/10 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Añadir franja
           </button>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-        <h2 className="font-semibold text-slate-900">
+      <section className="glass-card rounded-2xl p-5 relative overflow-hidden">
+        <h2 className="font-headline font-bold text-lg text-white">
           Reservar mañana manualmente
         </h2>
-        <label className="mt-3 grid gap-1 text-sm font-medium text-slate-700">
+        <label className="mt-4 grid gap-1.5 text-sm font-semibold text-slate-400">
           Franja
           <select
             value={manualTime}
             onChange={(event) => setManualTime(event.target.value)}
-            className="min-h-11 rounded-xl border border-slate-300 px-3"
+            className="min-h-11 rounded-xl border border-white/10 bg-white/5 text-white px-3 focus:border-brand-500 focus:ring-brand-500/20 outline-none mt-1"
           >
-            <option value="">Horario por defecto</option>
+            <option value="" className="bg-slate-900 text-white">Horario por defecto</option>
             {TIME_SLOTS.map((time) => (
-              <option key={time}>{time}</option>
+              <option key={time} className="bg-slate-900 text-white">{time}</option>
             ))}
           </select>
         </label>
-        <label className="mt-3 flex min-h-11 items-center gap-2 text-sm font-medium text-slate-700">
+        <label className="mt-4 flex min-h-11 items-center gap-2 text-sm font-semibold text-slate-300 cursor-pointer">
           <input
             type="checkbox"
             checked={dryRun}
             onChange={(event) => setDryRun(event.target.checked)}
-            className="size-5 rounded border-slate-300 text-brand-500"
+            className="size-5 rounded border-white/10 bg-white/5 text-brand-500 focus:ring-brand-500/20"
           />
           Modo prueba (no confirma)
         </label>
@@ -262,10 +262,10 @@ export default function ReservationsPanel() {
           type="button"
           onClick={handleRun}
           disabled={busy || !online || !configured}
-          className={`touch-target mt-3 w-full rounded-xl px-4 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`touch-target mt-4 w-full rounded-xl py-3 font-bold text-white shadow-md disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 active:scale-95 border border-white/15 cursor-pointer ${
             dryRun
-              ? 'bg-brand-500 hover:bg-brand-600'
-              : 'bg-red-600 hover:bg-red-700'
+              ? 'bg-brand-500 hover:bg-brand-600 shadow-[0_0_20px_rgba(47,127,255,0.35)]'
+              : 'bg-red-600 hover:bg-red-700 shadow-[0_0_20px_rgba(220,38,38,0.35)]'
           }`}
         >
           {busy
@@ -277,38 +277,38 @@ export default function ReservationsPanel() {
       </section>
 
       {notice && (
-        <p aria-live="polite" className="rounded-xl bg-green-50 p-4 text-sm text-green-800">
+        <p aria-live="polite" className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-400 font-semibold">
           {notice}
         </p>
       )}
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+        <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400 font-semibold">
           {error}
         </p>
       )}
 
-      <section>
-        <h2 className="font-semibold text-slate-900">Historial</h2>
+      <section className="flex flex-col gap-3">
+        <h2 className="font-headline font-bold text-lg text-white">Historial</h2>
         {history.length === 0 ? (
-          <p className="mt-3 rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-600">
+          <p className="rounded-2xl glass-card p-6 text-center text-slate-400 text-sm font-medium">
             Todavía no has lanzado ninguna reserva.
           </p>
         ) : (
-          <ul className="mt-3 grid gap-3">
+          <ul className="grid gap-3.5">
             {history.map((reservation) => (
               <li
                 key={reservation.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs"
+                className="glass-card rounded-2xl p-4 shadow-sm flex flex-col gap-2"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-medium text-slate-900">
+                  <span className="font-headline font-bold text-white text-base">
                     {reservation.timeSlot}
                   </span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${RESERVATION_STATUS_BADGE[reservation.status]}`}>
+                  <span className={`rounded-full px-3.5 py-1 text-xs font-bold border ${RESERVATION_STATUS_BADGE[reservation.status]}`}>
                     {RESERVATION_STATUS_LABEL[reservation.status]}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="text-xs font-semibold text-slate-500">
                   {new Date(reservation.date).toLocaleDateString('es-ES')}
                 </p>
                 {reservation.status === 'confirmed' &&
@@ -317,7 +317,7 @@ export default function ReservationsPanel() {
                       type="button"
                       disabled={busy}
                       onClick={() => void handleCancel(reservation.id)}
-                      className="touch-target mt-3 rounded-xl border border-red-300 px-4 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      className="touch-target mt-2 self-start rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all disabled:opacity-40 cursor-pointer"
                     >
                       Cancelar
                     </button>

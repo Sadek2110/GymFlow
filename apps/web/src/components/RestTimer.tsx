@@ -34,20 +34,23 @@ export default function RestTimer({ seconds, runId, onDone }: Props) {
     <div
       role="timer"
       aria-label="Descanso"
-      className="sticky top-2 z-40 flex items-center justify-between gap-3 rounded-2xl bg-brand-600 px-4 py-3 text-white shadow-lg"
+      className="sticky top-2 z-40 flex items-center justify-between gap-3 rounded-2xl bg-brand-600/90 backdrop-blur-md px-4 py-3 text-white shadow-[0_4px_25px_rgba(47,127,255,0.45)] border border-brand-500/30 transition-all duration-300"
     >
-      <span className="text-sm font-medium">Descanso</span>
-      <span className="font-mono text-2xl font-bold tabular-nums">{formatClock(remaining)}</span>
+      <span className="text-sm font-bold uppercase tracking-wider flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-neon-lime animate-pulse shadow-[0_0_6px_rgba(178,255,5,0.8)]"></span>
+        Descanso
+      </span>
+      <span className="font-mono text-2xl font-black tabular-nums neon-text-primary">{formatClock(remaining)}</span>
       <div className="flex gap-2">
         <button
           onClick={() => setRemaining((r) => r + 30)}
-          className="touch-target rounded-lg bg-white/20 px-3 py-1 text-sm font-semibold hover:bg-white/30"
+          className="touch-target rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25 active:scale-95 transition-all"
         >
           +30s
         </button>
         <button
           onClick={onDone}
-          className="touch-target rounded-lg bg-white/20 px-3 py-1 text-sm font-semibold hover:bg-white/30"
+          className="touch-target rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold hover:bg-white/25 active:scale-95 transition-all"
         >
           Saltar
         </button>

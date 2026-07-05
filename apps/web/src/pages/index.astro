@@ -3,30 +3,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="GymFlow AI — Tu gimnasio, ordenado">
-  <main class="mx-auto flex min-h-dvh max-w-md flex-col justify-between px-6 py-10">
+  <main class="relative mx-auto flex min-h-dvh max-w-md flex-col justify-between px-6 py-12 overflow-hidden">
+    <!-- Glowing background blur -->
+    <div class="absolute -right-20 top-20 -z-10 h-72 w-72 rounded-full bg-brand-500/15 blur-3xl"></div>
+    <div class="absolute -left-20 bottom-20 -z-10 h-72 w-72 rounded-full bg-neon-lime/10 blur-3xl"></div>
+
     <section class="flex flex-1 flex-col items-center justify-center text-center">
-      <div class="mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-brand-500 text-2xl font-bold text-white shadow-lg">
+      <div class="mb-8 grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-brand-500 to-neon-lime text-2xl font-black text-black shadow-[0_0_30px_rgba(47,127,255,0.4)] border border-white/20 tracking-wider">
         GF
       </div>
-      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
-        GymFlow AI
+      <h1 class="font-headline text-4xl font-extrabold tracking-tight text-white">
+        GymFlow <span class="bg-gradient-to-r from-brand-500 to-neon-lime bg-clip-text text-transparent">AI</span>
       </h1>
-      <p class="mt-3 max-w-xs text-balance text-slate-600">
-        Registra tus entrenamientos, sigue tu progreso y no vuelvas a olvidar
-        qué peso levantaste la última vez.
+      <p class="mt-4 max-w-xs text-balance text-sm/6 text-slate-400 font-medium">
+        Registra tus entrenamientos, sigue tu progreso y no vuelvas a olvidar qué peso levantaste la última vez. Tu asistente inteligente de gimnasio.
       </p>
     </section>
 
-    <nav class="flex flex-col gap-3">
+    <nav class="flex flex-col gap-3.5">
       <a
         href="/register"
-        class="touch-target grid place-items-center rounded-xl bg-brand-500 px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 active:bg-brand-700"
+        class="touch-target grid place-items-center rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-4 text-base font-bold text-white shadow-[0_0_20px_rgba(47,127,255,0.3)] hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(47,127,255,0.5)] active:scale-95 transition-all duration-300 border border-white/10"
       >
         Crear cuenta
       </a>
       <a
         href="/login"
-        class="touch-target grid place-items-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+        class="touch-target grid place-items-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-bold text-slate-200 hover:bg-white/10 active:scale-95 transition-all duration-300"
       >
         Ya tengo cuenta
       </a>

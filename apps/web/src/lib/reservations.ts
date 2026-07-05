@@ -44,12 +44,12 @@ export const RESERVATION_STATUS_LABEL: Record<Reservation['status'], string> = {
 };
 
 export const RESERVATION_STATUS_BADGE: Record<Reservation['status'], string> = {
-  pending: 'bg-amber-100 text-amber-700',
-  confirmed: 'bg-green-100 text-green-700',
-  failed: 'bg-red-100 text-red-700',
-  dry_run: 'bg-slate-100 text-slate-600',
-  skipped: 'bg-blue-100 text-blue-700',
-  cancelled: 'bg-slate-200 text-slate-600 line-through',
+  pending: 'bg-amber-500/10 border border-amber-500/25 text-amber-400',
+  confirmed: 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400',
+  failed: 'bg-red-500/10 border border-red-500/25 text-red-400',
+  dry_run: 'bg-white/5 border border-white/10 text-slate-300',
+  skipped: 'bg-brand-500/10 border border-brand-500/25 text-brand-400',
+  cancelled: 'bg-white/5 border border-white/5 text-slate-500 line-through',
 };
 
 export const fetchReservationHealth = () =>

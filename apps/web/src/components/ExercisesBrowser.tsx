@@ -9,9 +9,9 @@ import {
 } from '../lib/exercises';
 
 const LEVEL_BADGE: Record<string, string> = {
-  BEGINNER: 'bg-green-100 text-green-700',
-  INTERMEDIATE: 'bg-amber-100 text-amber-700',
-  ADVANCED: 'bg-red-100 text-red-700',
+  BEGINNER: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400',
+  INTERMEDIATE: 'bg-amber-500/10 border border-amber-500/20 text-amber-400',
+  ADVANCED: 'bg-red-500/10 border border-red-500/20 text-red-400',
 };
 
 export default function ExercisesBrowser() {
@@ -55,8 +55,8 @@ export default function ExercisesBrowser() {
   return (
     <div className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-bold text-slate-900">Ejercicios</h1>
-        <p className="text-sm text-slate-500">Explora el repertorio y aprende la técnica.</p>
+        <h1 className="font-headline text-3xl font-bold text-white tracking-tight">Ejercicios</h1>
+        <p className="text-sm text-slate-400 mt-1">Explora el repertorio y aprende la técnica.</p>
       </header>
 
       <input
@@ -64,7 +64,7 @@ export default function ExercisesBrowser() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Buscar (p. ej. press banca)"
-        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
       />
 
       <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
@@ -80,38 +80,38 @@ export default function ExercisesBrowser() {
       </div>
 
       {error && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p role="alert" className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
           {error}
         </p>
       )}
 
       {loading ? (
-        <p className="py-10 text-center text-slate-500">Cargando…</p>
+        <p className="py-10 text-center text-slate-500 font-semibold">Cargando…</p>
       ) : items.length === 0 ? (
-        <p className="py-10 text-center text-slate-500">No hay ejercicios que coincidan.</p>
+        <p className="py-10 text-center text-slate-500 font-semibold">No hay ejercicios que coincidan.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3.5">
           {items.map((ex) => (
             <li key={ex.id}>
               <a
                 href={`/exercises/${ex.id}`}
-                className="block rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md"
+                className="block glass-card p-4 rounded-2xl transition hover:scale-[1.01] duration-200"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="font-semibold text-slate-900">{ex.name}</h2>
-                    <p className="mt-0.5 text-sm capitalize text-slate-500">
+                    <h2 className="font-headline font-bold text-white text-base">{ex.name}</h2>
+                    <p className="mt-1 text-xs capitalize text-slate-400 font-semibold">
                       {ex.category} · {ex.type}
                     </p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${LEVEL_BADGE[ex.level]}`}
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold border ${LEVEL_BADGE[ex.level]}`}
                   >
                     {LEVEL_LABEL[ex.level]}
                   </span>
                 </div>
                 {ex.mainMuscles.length > 0 && (
-                  <p className="mt-2 text-xs text-slate-400">{ex.mainMuscles.join(', ')}</p>
+                  <p className="mt-2 text-xs text-slate-500 font-semibold">{ex.mainMuscles.join(', ')}</p>
                 )}
               </a>
             </li>
@@ -124,17 +124,17 @@ export default function ExercisesBrowser() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="touch-target rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium disabled:opacity-40"
+            className="touch-target rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/10 active:scale-95 disabled:opacity-40"
           >
             ← Anterior
           </button>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-400 font-semibold">
             Página {meta.page} de {meta.totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
             disabled={page >= meta.totalPages}
-            className="touch-target rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium disabled:opacity-40"
+            className="touch-target rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-white/10 active:scale-95 disabled:opacity-40"
           >
             Siguiente →
           </button>
@@ -148,8 +148,10 @@ function Chip({ active, onClick, label }: { active: boolean; onClick: () => void
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium capitalize transition-colors ${
-        active ? 'bg-brand-500 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+      className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold capitalize transition-all duration-200 cursor-pointer ${
+        active 
+          ? 'bg-brand-500 text-white shadow-[0_0_12px_rgba(47,127,255,0.3)] border border-brand-500' 
+          : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-white'
       }`}
     >
       {label}
