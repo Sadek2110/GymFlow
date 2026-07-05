@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import TrainSession from '../components/TrainSession.tsx';
+---
+
+<AppLayout title="Entrenar — GymFlow AI" active="train">
+  <TrainSession client:load />
+</AppLayout>

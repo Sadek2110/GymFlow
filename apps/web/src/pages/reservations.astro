@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import ReservationsPanel from '../components/ReservationsPanel.tsx';
+---
+
+<AppLayout title="Reservas — GymFlow AI" active="profile">
+  <ReservationsPanel client:load />
+</AppLayout>

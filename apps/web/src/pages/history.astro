@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import HistoryPanel from '../components/HistoryPanel.tsx';
+---
+
+<AppLayout title="Historial — GymFlow AI" active="dashboard">
+  <HistoryPanel client:load />
+</AppLayout>

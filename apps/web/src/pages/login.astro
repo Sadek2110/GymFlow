@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthForm from '../components/AuthForm.tsx';
+---
+
+<BaseLayout title="Entrar — GymFlow AI">
+  <main class="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10">
+    <a href="/" class="mb-6 text-sm font-medium text-slate-500">← Volver</a>
+    <h1 class="mb-1 text-2xl font-bold text-slate-900">Bienvenido de nuevo</h1>
+    <p class="mb-6 text-slate-600">Entra para seguir tu progreso.</p>
+    <AuthForm mode="login" client:load />
+  </main>
+</BaseLayout>

@@ -1,0 +1,10 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import ExerciseDetail from '../../components/ExerciseDetail.tsx';
+
+const { id } = Astro.params;
+---
+
+<AppLayout title="Ejercicio — GymFlow AI" active="exercises">
+  <ExerciseDetail id={id!} client:load />
+</AppLayout>

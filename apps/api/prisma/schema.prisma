@@ -1,0 +1,207 @@
+// GymFlow AI — esquema Prisma del MVP.
+// Decisiones clave (ver guía §4):
+//  - Historial de peso: BodyMeasurement, NUNCA se sobrescribe.
+//  - PRs no se guardan: se calculan al vuelo sobre WorkoutExerciseLog.
+//  - Soft delete en Exercise (isActive) para no romper historiales.
+//  - Pesos siempre en kg en la DB; conversión kg/lb en frontend.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Goal {
+  HYPERTROPHY
+  FAT_LOSS
+  STRENGTH
+  ENDURANCE
+  STAY_FIT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile             UserProfile?
+  measurements        BodyMeasurement[]
+  routines            Routine[]
+  sessions            WorkoutSession[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model UserProfile {
+  id                  String @id @default(uuid())
+  userId              String @unique
+  heightCm            Int?
+  birthYear           Int?
+  gender              String?
+  fitnessLevel        Level  @default(BEGINNER)
+  mainGoal            Goal   @default(STAY_FIT)
+  trainingDaysPerWeek Int    @default(3)
+  injuries            String?
+  units               String @default("kg") // kg | lb
+  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// CLAVE: historial de peso, nunca sobrescribir.
+model BodyMeasurement {
+  id       String   @id @default(uuid())
+  userId   String
+  weightKg Decimal  @db.Decimal(5, 2)
+  date     DateTime @default(now())
+  note     String?
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+// Sesiones de refresco: se guarda solo el hash del token para poder revocarlo (logout).
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Recuperación de contraseña: solo hash del token (MVP: el token se loguea en servidor).
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Exercise {
+  id               String   @id @default(uuid())
+  name             String
+  category         String
+  type             String // gym | calistenia | crossfit | cardio
+  level            Level    @default(BEGINNER)
+  equipment        String?
+  description      String?
+  technique        String?
+  commonMistakes   String?
+  mainMuscles      String[]
+  secondaryMuscles String[]
+  videoUrl         String?
+  imageUrl         String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  routineEntries RoutineDayExercise[]
+  workoutLogs    WorkoutExerciseLog[]
+}
+
+model Routine {
+  id        String       @id @default(uuid())
+  userId    String
+  name      String
+  goal      Goal?
+  isActive  Boolean      @default(false)
+  days      RoutineDay[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RoutineDay {
+  id        String               @id @default(uuid())
+  routineId String
+  dayOfWeek Int // 0=lunes ... 6=domingo
+  title     String?
+  isRestDay Boolean              @default(false)
+  exercises RoutineDayExercise[]
+  routine   Routine              @relation(fields: [routineId], references: [id], onDelete: Cascade)
+
+  @@unique([routineId, dayOfWeek])
+}
+
+model RoutineDayExercise {
+  id           String     @id @default(uuid())
+  routineDayId String
+  exerciseId   String
+  order        Int
+  targetSets   Int        @default(3)
+  targetReps   String     @default("8-12")
+  targetWeight Decimal?   @db.Decimal(6, 2)
+  restSeconds  Int        @default(90)
+  routineDay   RoutineDay @relation(fields: [routineDayId], references: [id], onDelete: Cascade)
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id])
+
+  @@index([exerciseId])
+}
+
+model WorkoutSession {
+  id           String               @id @default(uuid())
+  userId       String
+  routineId    String?
+  routineDayId String?
+  date         DateTime             @default(now())
+  status       String               @default("in_progress") // in_progress | completed | abandoned
+  notes        String?
+  finishedAt   DateTime?
+  logs         WorkoutExerciseLog[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model WorkoutExerciseLog {
+  id          String         @id @default(uuid())
+  sessionId   String
+  exerciseId  String
+  setNumber   Int
+  weightKg    Decimal?       @db.Decimal(6, 2)
+  reps        Int
+  restSeconds Int?
+  rpe         Int?
+  notes       String?
+  session     WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise    Exercise       @relation(fields: [exerciseId], references: [id])
+
+  @@index([exerciseId])
+}
+
+model Reservation {
+  id        String   @id @default(uuid())
+  userId    String
+  facility  String
+  service   String
+  date      DateTime
+  timeSlot  String
+  status    String // pending | confirmed | failed | dry_run
+  rawLog    String?
+  createdAt DateTime @default(now())
+}

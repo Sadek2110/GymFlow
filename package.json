@@ -1,0 +1,23 @@
+{
+  "name": "gymflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GymFlow AI — MVP monorepo (Astro web + NestJS API)",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev --workspace apps/api",
+    "dev:web": "npm run dev --workspace apps/web",
+    "test": "npm run test --workspace apps/api",
+    "test:api": "npm run test --workspace apps/api",
+    "lint": "npm run lint --workspace apps/api",
+    "db:up": "docker compose up -d db",
+    "compose:up": "docker compose up --build",
+    "compose:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

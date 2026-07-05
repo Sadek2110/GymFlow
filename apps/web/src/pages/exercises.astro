@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import ExercisesBrowser from '../components/ExercisesBrowser.tsx';
+---
+
+<AppLayout title="Ejercicios — GymFlow AI" active="exercises">
+  <ExercisesBrowser client:load />
+</AppLayout>

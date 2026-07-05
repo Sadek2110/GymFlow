@@ -1,0 +1,10 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import RoutineEditor from '../../components/RoutineEditor.tsx';
+
+const { id } = Astro.params;
+---
+
+<AppLayout title="Editar rutina — GymFlow AI" active="routines">
+  <RoutineEditor id={id!} client:load />
+</AppLayout>

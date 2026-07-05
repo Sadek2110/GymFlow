@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+.next/
+.astro/
+apps/web/dist/
+apps/api/dist/
+
+# env — nunca subir secretos
+.env
+.env.*
+!.env.example
+
+# prisma
+apps/api/prisma/*.db
+
+# testing / coverage
+coverage/
+*.lcov
+
+# logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

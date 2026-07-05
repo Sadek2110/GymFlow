@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import ProfilePanel from '../components/ProfilePanel.tsx';
+---
+
+<AppLayout title="Perfil — GymFlow AI" active="profile">
+  <ProfilePanel client:load />
+</AppLayout>

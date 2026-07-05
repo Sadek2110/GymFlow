@@ -1,0 +1,8 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import RoutinesList from '../components/RoutinesList.tsx';
+---
+
+<AppLayout title="Rutinas — GymFlow AI" active="routines">
+  <RoutinesList client:load />
+</AppLayout>

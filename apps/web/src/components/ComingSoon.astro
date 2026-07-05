@@ -1,0 +1,13 @@
+---
+interface Props { heading: string; phase: string }
+const { heading, phase } = Astro.props;
+---
+
+<div class="flex flex-col items-center justify-center gap-3 py-20 text-center">
+  <div class="grid h-14 w-14 place-items-center rounded-2xl bg-slate-200 text-2xl">🚧</div>
+  <h1 class="text-xl font-bold text-slate-800">{heading}</h1>
+  <p class="max-w-xs text-sm text-slate-500">
+    Esta sección llega en la <strong>{phase}</strong>. La base (auth y perfil) ya está lista.
+  </p>
+  <a href="/dashboard" class="mt-2 text-sm font-semibold text-brand-600">← Volver al inicio</a>
+</div>

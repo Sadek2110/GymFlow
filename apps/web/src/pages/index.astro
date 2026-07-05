@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="GymFlow AI — Tu gimnasio, ordenado">
+  <main class="mx-auto flex min-h-dvh max-w-md flex-col justify-between px-6 py-10">
+    <section class="flex flex-1 flex-col items-center justify-center text-center">
+      <div class="mb-6 grid h-16 w-16 place-items-center rounded-2xl bg-brand-500 text-2xl font-bold text-white shadow-lg">
+        GF
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+        GymFlow AI
+      </h1>
+      <p class="mt-3 max-w-xs text-balance text-slate-600">
+        Registra tus entrenamientos, sigue tu progreso y no vuelvas a olvidar
+        qué peso levantaste la última vez.
+      </p>
+    </section>
+
+    <nav class="flex flex-col gap-3">
+      <a
+        href="/register"
+        class="touch-target grid place-items-center rounded-xl bg-brand-500 px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 active:bg-brand-700"
+      >
+        Crear cuenta
+      </a>
+      <a
+        href="/login"
+        class="touch-target grid place-items-center rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-base font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+      >
+        Ya tengo cuenta
+      </a>
+    </nav>
+  </main>
+</BaseLayout>

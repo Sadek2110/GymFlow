@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthForm from '../components/AuthForm.tsx';
+---
+
+<BaseLayout title="Crear cuenta — GymFlow AI">
+  <main class="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10">
+    <a href="/" class="mb-6 text-sm font-medium text-slate-500">← Volver</a>
+    <h1 class="mb-1 text-2xl font-bold text-slate-900">Crea tu cuenta</h1>
+    <p class="mb-6 text-slate-600">Un par de datos y empezamos.</p>
+    <AuthForm mode="register" client:load />
+  </main>
+</BaseLayout>

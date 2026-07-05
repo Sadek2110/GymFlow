@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Tokens de marca GymFlow (mobile-first). */
+@theme {
+  --color-brand-50: #eef7ff;
+  --color-brand-100: #d9edff;
+  --color-brand-500: #2f7fff;
+  --color-brand-600: #1e63e0;
+  --color-brand-700: #1a4fb3;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+/* Área táctil mínima recomendada (44x44) para controles clave. */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
