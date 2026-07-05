@@ -4,6 +4,8 @@ import {
   fetchReservationHealth,
   fetchReservations,
   runReservation,
+  fetchAutoReserve,
+  updateAutoReserve,
   RESERVATION_STATUS_BADGE,
   RESERVATION_STATUS_LABEL,
   type Reservation,
@@ -20,6 +22,11 @@ export default function ReservationsPanel() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Auto-reserve settings states
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [autoTime, setAutoTime] = useState('09:00 - 10:00');
+  const [savingAuto, setSavingAuto] = useState(false);
+
   async function loadHistory() {
     setReservations(await fetchReservations());
   }
@@ -28,8 +35,14 @@ export default function ReservationsPanel() {
     (async () => {
       try {
         // Si el módulo está desactivado, la API responde 404.
-        const [h] = await Promise.all([fetchReservationHealth(), loadHistory()]);
+        const [h, autoRes] = await Promise.all([
+          fetchReservationHealth(),
+          fetchAutoReserve().catch(() => ({ enabled: false, time: '09:00 - 10:00' })),
+          loadHistory(),
+        ]);
         setHealth(h);
+        setAutoEnabled(autoRes.enabled);
+        if (autoRes.time) setAutoTime(autoRes.time);
       } catch (err) {
         if (err instanceof ApiRequestError && err.status === 404) {
           setAvailable(false);
@@ -80,6 +93,20 @@ export default function ReservationsPanel() {
     }
   }
 
+  async function saveAutoSettings(nextEnabled: boolean, nextTime: string) {
+    setSavingAuto(true);
+    setError(null);
+    try {
+      const saved = await updateAutoReserve({ enabled: nextEnabled, time: nextTime });
+      setAutoEnabled(saved.enabled);
+      if (saved.time) setAutoTime(saved.time);
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'No se pudo guardar la configuración.');
+    } finally {
+      setSavingAuto(false);
+    }
+  }
+
   if (loading) return <p className="py-10 text-center text-slate-500">Cargando…</p>;
 
   if (!available) {
@@ -106,7 +133,7 @@ export default function ReservationsPanel() {
         <p className="text-sm text-slate-500">Automatiza tu reserva diaria del C.D. Díaz Flor.</p>
       </header>
 
-      <section className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
+      <section className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-slate-100">
         <span className="text-sm font-medium text-slate-600">Estado del servicio</span>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -117,9 +144,49 @@ export default function ReservationsPanel() {
         </span>
       </section>
 
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
+      <section className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between">
+          <div className="pr-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Reservas automáticas
+            </h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Reservaremos de forma automática a las 05:00 si mañana entrenas en tu rutina activa.
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={autoEnabled}
+              onChange={(e) => saveAutoSettings(e.target.checked, autoTime)}
+              disabled={savingAuto}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+          </label>
+        </div>
+
+        {autoEnabled && (
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <label className="block">
+              <span className="text-sm font-medium text-slate-600">Franja horaria deseada</span>
+              <p className="text-xs text-slate-400 mb-2">Formato de 24h, por ejemplo: 09:00 - 10:00</p>
+              <input
+                type="text"
+                className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition"
+                value={autoTime}
+                onBlur={(e) => saveAutoSettings(autoEnabled, e.target.value)}
+                onChange={(e) => setAutoTime(e.target.value)}
+                placeholder="09:00 - 10:00"
+              />
+            </label>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl bg-white p-4 shadow-sm border border-slate-100">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Reservar mañana
+          Reservar mañana manualmente
         </h2>
         <label className="mt-3 flex items-center gap-2 text-sm font-medium text-slate-700">
           <input
@@ -134,7 +201,7 @@ export default function ReservationsPanel() {
         <button
           onClick={handleRun}
           disabled={running || !online}
-          className={`touch-target mt-3 w-full rounded-xl px-4 py-3 text-base font-semibold text-white disabled:opacity-40 ${
+          className={`touch-target mt-3 w-full rounded-xl px-4 py-3 text-base font-semibold text-white disabled:opacity-40 transition ${
             dryRun ? 'bg-brand-500 hover:bg-brand-600' : 'bg-red-600 hover:bg-red-700'
           }`}
         >
@@ -156,20 +223,26 @@ export default function ReservationsPanel() {
           Historial de intentos
         </h2>
         {reservations.length === 0 ? (
-          <p className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm">
+          <p className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm border border-slate-100">
             Todavía no has lanzado ninguna reserva.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
             {reservations.map((r) => (
-              <li key={r.id} className="rounded-2xl bg-white p-4 shadow-sm">
+              <li key={r.id} className="rounded-2xl bg-white p-4 shadow-sm border border-slate-100">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-slate-800">{r.timeSlot}</span>
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${RESERVATION_STATUS_BADGE[r.status]}`}>
                     {RESERVATION_STATUS_LABEL[r.status]}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-500">
+                {r.rawLog && (
+                  <details className="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded-lg cursor-pointer">
+                    <summary className="font-medium text-slate-600 hover:text-slate-900">Ver detalles del log</summary>
+                    <pre className="mt-1 whitespace-pre-wrap font-mono text-[10px] overflow-x-auto">{r.rawLog}</pre>
+                  </details>
+                )}
+                <p className="mt-1 text-sm text-slate-400">
                   {new Date(r.createdAt).toLocaleString('es-ES', {
                     day: '2-digit',
                     month: 'short',

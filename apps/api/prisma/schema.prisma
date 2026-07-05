@@ -42,6 +42,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  autoReserveEnabled Boolean @default(false)
+  autoReserveTime    String? // p.ej. "09:00 - 10:00"; null = usa el TARGET_TIME de ReservaGym
+
   profile             UserProfile?
   measurements        BodyMeasurement[]
   routines            Routine[]
@@ -201,7 +204,7 @@ model Reservation {
   service   String
   date      DateTime
   timeSlot  String
-  status    String // pending | confirmed | failed | dry_run
+  status    String // pending | confirmed | failed | dry_run | skipped
   rawLog    String?
   createdAt DateTime @default(now())
 }

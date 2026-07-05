@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, ApiRequestError } from '../lib/api';
 import { formatWeight, type Units } from '../lib/units';
 import { fetchOverview, ringDash, type Overview } from '../lib/progress';
+import { fetchShouldRunTomorrow, type ShouldRunResponse } from '../lib/reservations';
 
 interface Me {
   name: string;
@@ -11,14 +12,20 @@ interface Me {
 export default function DashboardPanel() {
   const [me, setMe] = useState<Me | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [shouldRun, setShouldRun] = useState<ShouldRunResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get<Me>('/users/me'), fetchOverview()])
-      .then(([meRes, ov]) => {
+    Promise.all([
+      api.get<Me>('/users/me'),
+      fetchOverview(),
+      fetchShouldRunTomorrow().catch(() => null),
+    ])
+      .then(([meRes, ov, runTomorrow]) => {
         setMe(meRes);
         setOverview(ov);
+        setShouldRun(runTomorrow);
       })
       .catch((err) =>
         setError(err instanceof ApiRequestError ? err.message : 'No se pudo cargar tu inicio.'),
@@ -89,6 +96,29 @@ export default function DashboardPanel() {
           <p className="mt-2 text-slate-600">
             Hoy no hay ejercicios planificados. ¡Puedes entrenar libre!
           </p>
+        )}
+
+        {shouldRun?.autoReserveEnabled && (
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <span className="text-slate-500 font-medium">Auto-reserva para mañana:</span>
+            {shouldRun.shouldReserve ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-lg">
+                ✅ Planificada ({shouldRun.dayTitle || 'Entrenamiento'})
+              </span>
+            ) : shouldRun.reason === 'rest-day' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">
+                💤 Omitida (descanso)
+              </span>
+            ) : shouldRun.reason === 'no-active-routine' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg">
+                ⚠️ Omitida (sin rutina activa)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg">
+                🚫 Omitida ({shouldRun.reason})
+              </span>
+            )}
+          </div>
         )}
       </section>
 

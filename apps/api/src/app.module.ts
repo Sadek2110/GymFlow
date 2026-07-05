@@ -12,6 +12,7 @@ import { RoutinesModule } from './routines/routines.module';
 import { WorkoutsModule } from './workouts/workouts.module';
 import { ProgressModule } from './progress/progress.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './health/health.controller';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -33,6 +34,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     WorkoutsModule,
     ProgressModule,
     ReservationsModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -32,7 +32,7 @@ services:
       JWT_REFRESH_TTL: 7d
       PORT: 4000
       CORS_ORIGIN: http://localhost:3001
-      RESERVAGYM_ENABLED: "false"
+      RESERVAGYM_ENABLED: "true"
     ports:
       - "4000:4000"
 
