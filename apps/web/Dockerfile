@@ -8,6 +8,9 @@ RUN npm install --workspace apps/web --include-workspace-root
 
 COPY apps/web ./apps/web
 WORKDIR /app/apps/web
+# PUBLIC_API_URL se incrusta en el bundle en build time (Vite/Astro)
+ARG PUBLIC_API_URL
+ENV PUBLIC_API_URL=$PUBLIC_API_URL
 RUN npm run build
 
 # --- Runtime stage ---
